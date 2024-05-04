@@ -1,7 +1,6 @@
 ﻿using Azure;
 using Azure.Core;
 using Azure.Identity;
-using Azure.Security.KeyVault.Certificates;
 using Azure.Security.KeyVault.Secrets;
 using System.Security.Cryptography.X509Certificates;
 
@@ -26,11 +25,8 @@ namespace SNIAuthDemo
 
         private static X509Certificate2 GetCertificate(string vaultUrl, string certName)
         {
-            var certClient = new CertificateClient(new Uri(vaultUrl), new VisualStudioCredential());
             var secretClient = new SecretClient(vaultUri: new Uri(vaultUrl), credential: new VisualStudioCredential());
-            Response<KeyVaultCertificateWithPolicy> certResponse = certClient.GetCertificate(certName);
-            KeyVaultSecretIdentifier identifier = new KeyVaultSecretIdentifier(certResponse.Value.SecretId);
-            Response<KeyVaultSecret> secretResponse = secretClient.GetSecret(identifier.Name, identifier.Version);
+            Response<KeyVaultSecret> secretResponse = secretClient.GetSecret(certName);
             KeyVaultSecret secret = secretResponse.Value;
             byte[] privateKeyBytes = Convert.FromBase64String(secret.Value);
             return new X509Certificate2(privateKeyBytes);
