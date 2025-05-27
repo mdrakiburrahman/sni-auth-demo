@@ -23,12 +23,23 @@ namespace SNIAuthDemo
             Console.WriteLine(token.Token);
         }
 
-        private static X509Certificate2 GetCertificate(string vaultUrl, string certName)
+        private static String GetSecret(string vaultUrl, string certName)
         {
+            string? certValue = Environment.GetEnvironmentVariable("certValue");
+            if (!string.IsNullOrEmpty(certValue))
+            {
+                return certValue;
+            }
+
             var secretClient = new SecretClient(vaultUri: new Uri(vaultUrl), credential: new VisualStudioCredential());
             Response<KeyVaultSecret> secretResponse = secretClient.GetSecret(certName);
             KeyVaultSecret secret = secretResponse.Value;
-            byte[] privateKeyBytes = Convert.FromBase64String(secret.Value);
+            return secret.Value;
+        }
+
+        private static X509Certificate2 GetCertificate(string vaultUrl, string certName)
+        {
+            byte[] privateKeyBytes = Convert.FromBase64String(GetSecret(vaultUrl, certName));
             return new X509Certificate2(privateKeyBytes);
         }
 
